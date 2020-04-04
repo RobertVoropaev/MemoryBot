@@ -21,14 +21,13 @@ class VkBot:
         return user_name.split()[0]
 
     def new_message(self, message):
-
         # Привет
         if message.upper() == self._COMMANDS[0]:
             return f"Привет-привет, {self._USERNAME}!"
 
-#         # Погода
-#         elif message.upper() == self._COMMANDS[1]:
-#             return self._get_weather()
+        # Погода
+        elif message.upper() == self._COMMANDS[1]:
+            return self._get_weather()
 
         # Время
         elif message.upper() == self._COMMANDS[2]:
