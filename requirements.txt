@@ -1,1 +1,4 @@
+requests==2.23.0
+vk-api==11.8.0
+beautifulsoup4==4.8.2
 algorithmia==1.2.1
