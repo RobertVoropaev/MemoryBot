@@ -31,8 +31,6 @@ class algo_client():
 
 
 
-
-
 if __name__ == '__main__':
     client = algo_client(apiKey='simIVvEvW9njMmOIYwAtYFdxtFe1',
                          model_name='deeplearning/ColorfulImageColorization/1.1.13',
