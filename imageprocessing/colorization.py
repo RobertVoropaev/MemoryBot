@@ -1,17 +1,17 @@
 import Algorithmia
 import sys
 
-def get_color_name(url):
-    name = url.split('/')[-1].split(".")
-    return name[0] + "_color." + name[1]
-
-class algo_client():
-    def __init__(self, apiKey, model_name, local_dir="data/", cloud_in_dir="data://.my/data_in/"):
-        self.client = Algorithmia.client(apiKey)
-        self.algo = self.client.algo(model_name)
-
+class AlgoClient():
+    def __init__(self, local_dir="data/"):
         self.local_dir = local_dir
-        self.cloud_in_dir = cloud_in_dir
+
+        #hardcode настроек сайта
+        self.model_name = 'deeplearning/ColorfulImageColorization/1.1.13'
+        self.cloud_in_dir = "data://.my/data_in/"
+        self.apiKey = 'simIVvEvW9njMmOIYwAtYFdxtFe1'
+
+        self.client = Algorithmia.client(self.apiKey)
+        self.algo = self.client.algo(self.model_name)
 
     def colorize(self, img_name):
         #загрузка файла на сайт
@@ -25,18 +25,23 @@ class algo_client():
         color_file = self.client.file(cloud_color_img).getBytes()
 
         #запись в файл
-        color_img_name = get_color_name(cloud_color_img)
+        color_img_name = self.get_color_name_(cloud_color_img)
         with open(self.local_dir + color_img_name, "wb") as f:
             f.write(color_file)
 
+        return color_img_name
+
+    def get_color_name_(self, img_url):
+        name = str(img_url).split('/')[-1].split(".")
+        return name[0] + "_color." + name[1]
 
 
 if __name__ == '__main__':
-    client = algo_client(apiKey='simIVvEvW9njMmOIYwAtYFdxtFe1',
-                         model_name='deeplearning/ColorfulImageColorization/1.1.13',
-                         local_dir="data/",
-                         cloud_in_dir="data://.my/data_in/")
+    # сюда нужно передать путь до папки, в которой будут лежать фотографии
+    algoclient = AlgoClient(local_dir="data/")
 
     img_name = sys.argv[1]
-    client.colorize(img_name)
-    print("Done")
+    # получает на вход имя файла в папке
+    color_img_path = algoclient.colorize(img_name)
+
+    print(color_img_path)
