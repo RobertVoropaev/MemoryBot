@@ -4,6 +4,7 @@ import requests
 import stage
 import pnconnector
 from vk_api import vk_api
+from vk_api import VkUpload
 
 
 class VkBot:
@@ -52,9 +53,21 @@ class VkBot:
     def _get_photo_from_message(self, message_id, api):
         return api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
 
-    def _post_to_community(self, message):
-        vk = vk_api.VkApi(token="f8c00753616ce2cf3ec5b5159aa450a9f0614a08c22c1c2897a81a70cff2306c6df24bdfd824c16a0c358")
-        vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message})
+    def _post_to_community(self, message, image_path):
+        vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
+        # upload_url = vk.method('photos.getUploadServer', {'album_id':270364396, 'group_id':193773037})
+        # print(upload_url)
+        upload = VkUpload(vk)
+        photo = upload.photo(  # Подставьте свои данные
+            image_path,
+            album_id=270364396,
+            group_id=193773037
+        )
+        print(photo)
+        photo = photo[0]
+        owner_id = photo['owner_id']
+        photo_id = photo['id']
+        vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments':f'photo{owner_id}_{photo_id}'})
 
     def new_message(self, message, message_id, api):
 
