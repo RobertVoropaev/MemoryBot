@@ -62,7 +62,7 @@ class VkBot:
         return photos[0]['photo']['sizes'][4]['url']
 
     def _get_vk_photo_from_local(self, image_path):
-        vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
+        vk = vk_api.VkApi(token="b156808fc782a5d672728f21f69bb85db358fe11320183d485027db670c85b262cdd58a16fb53ffa34405")
         # upload_url = vk.method('photos.getUploadServer', {'album_id':270364396, 'group_id':193773037})
         # print(upload_url)
         upload = VkUpload(vk)
@@ -77,7 +77,7 @@ class VkBot:
         return f'photo{owner_id}_{photo_id}'
 
     def _post_to_community(self, message, image_path=""):
-        vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
+        vk = vk_api.VkApi(token="b156808fc782a5d672728f21f69bb85db358fe11320183d485027db670c85b262cdd58a16fb53ffa34405")
         if image_path!="":
             photo_url = self._get_vk_photo_from_local(image_path)
             vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': photo_url})
@@ -147,11 +147,11 @@ class VkBot:
                             break
                 if path:
                     break
-                print(path)
-                self._post_to_community("Пост", path)
+
                 time_out -= 1
                 sleep(1)
-            return {'m': f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': self._get_vk_photo_from_local(path)}
+            self._post_to_community("Пост", self._get_vk_photo_from_local('../data/1.jpg'))
+            return {'m': f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': self._get_vk_photo_from_local('../data/1.jpg')}
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START

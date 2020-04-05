@@ -7,7 +7,7 @@ from VkBot import VkBot
 
 
 def write_msg(user_id, message, att):
-    vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random.randint(0, 2048), 'attachments':att})
+    vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random.randint(0, 2048), 'attachment':att})
     
 import json
 import sys
