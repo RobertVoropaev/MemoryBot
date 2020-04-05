@@ -5,7 +5,7 @@ import sys
 from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input, decode_predictions
 
-class KerasValidationModel:
+class ValidationModel:
     def __init__(self, local_dir="data/", models_dir="models/"):
         self.model = keras.models.load_model(models_dir + 'model.h5')
 
@@ -35,12 +35,12 @@ class KerasValidationModel:
 
 if __name__ == '__main__':
     # сюда нужно передать путь до папки, в которой будут лежать фотографии, и путь до модели
-    keras_model = KerasValidationModel(local_dir="data/", models_dir="models/")
+    validation_model = ValidationModel(local_dir="data/", models_dir="models/")
 
     img_name = sys.argv[1]
 
     #получает на вход имя файла в папке и возвращает True, если фотка валидна
-    result = keras_model.is_valid_photo(img_name)
+    result = validation_model.is_valid_photo(img_name)
 
     if result:
         print('Valid')

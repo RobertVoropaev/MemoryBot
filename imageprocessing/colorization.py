@@ -1,7 +1,7 @@
 import Algorithmia
 import sys
 
-class AlgoClient:
+class ColorizeModel:
     def __init__(self, local_dir="data/"):
         self.local_dir = local_dir
 
@@ -38,10 +38,10 @@ class AlgoClient:
 
 if __name__ == '__main__':
     # сюда нужно передать путь до папки, в которой будут лежать фотографии
-    algoclient = AlgoClient(local_dir="data/")
+    colorize_model = ColorizeModel(local_dir="data/")
 
     img_name = sys.argv[1]
     # получает на вход имя файла в папке и возвращает имя цветного файла в той же папке
-    color_img_path = algoclient.colorize(img_name)
+    color_img_name = colorize_model.colorize(img_name)
 
-    print(color_img_path)
+    print(color_img_name)
