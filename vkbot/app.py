@@ -5,8 +5,9 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 
 from VkBot import VkBot
 
-def write_msg(user_id, message):
-    vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random.randint(0, 2048)})
+
+def write_msg(user_id, message, att):
+    vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random.randint(0, 2048), 'attachments':att})
     
 import json
 import sys
@@ -47,12 +48,13 @@ for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
             print(f'Recive from {event.user_id}: {event.text}')
-
             bot = None
             if event.user_id not in bots:
                 bot = VkBot(event.user_id, config, algomanager_tasks)
                 bots[event.user_id] = bot
             else:
                 bot = bots[event.user_id]
-
-            write_msg(event.user_id, bot.new_message(event.text, event.message_id, vk))
+            print(event.text)
+            message = bot.new_message(event.text, event.message_id, vk)
+            print(message)
+            write_msg(event.user_id, message['m'], message['att'])

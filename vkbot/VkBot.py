@@ -53,12 +53,13 @@ class VkBot:
 
     def _get_photo_by_url(self, photo_url):
         photo = requests.get(photo_url)
-        photo_file = open(f'../data/{random.randint(0, 2048)}.png', "wb")
+        photo_file = open(f'../data/1.jpg', "wb")
         photo_file.write(photo.content)
         photo_file.close()
 
     def _get_photo_from_message(self, message_id, api):
-        return api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
+        photos = api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
+        return photos[0]['photo']['sizes'][4]['url']
 
     def _get_vk_photo_from_local(self, image_path):
         vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
@@ -73,13 +74,13 @@ class VkBot:
         photo = photo[0]
         owner_id = photo['owner_id']
         photo_id = photo['id']
-        return owner_id, photo_id
+        return f'photo{owner_id}_{photo_id}'
 
     def _post_to_community(self, message, image_path=""):
         vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
         if image_path!="":
-            owner_id, photo_id = self._get_vk_photo_from_local(image_path)
-            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments':f'photo{owner_id}_{photo_id}'})
+            photo_url = self._get_vk_photo_from_local(image_path)
+            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': photo_url})
         else:
             vk.method('wall.post', {'owner_id': -193773037, 'from_group': 1, "message": message
                                 })
@@ -88,7 +89,7 @@ class VkBot:
 
         if self._stage is stage.Stage.START:
             self._stage = stage.Stage.WHAITING_NAME
-            return f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\nВведи имя героя.'
+            return {'m': f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\nВведи имя героя.', 'att': ''}
         
         elif self._stage is stage.Stage.WHAITING_NAME:
             self._stage = stage.Stage.WHAITING_CHOSE_HERO
@@ -96,7 +97,7 @@ class VkBot:
             self._items = pnc.getData(message, self._short_list_len_limit)
             count = int(len(self._items))
             text = self._items_short_list()
-            return f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.'
+            return {'m': f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.', 'att': ''}
 
         if self._stage is stage.Stage.WHAITING_CHOSE_HERO:
             self._search_continue_or_next_stage(message)
@@ -110,12 +111,12 @@ class VkBot:
 
         if self._stage is stage.Stage.HERO_NOT_FOUND:
             self._stage = stage.Stage.START
-            return f'Мне очень жаль. Нужно уточнить поиск. Попробуй еще раз.'
+            return {'m':f'Мне очень жаль. Нужно уточнить поиск. Попробуй еще раз.', 'att': ''}
 
         if self._stage is stage.Stage.TEXT_IS_READY:
             self._stage = stage.Stage.DO_YOU_HAVE_PHOTO
             post_text = 'Содержание поста'
-            return f'Вот такой пост мы подготовили:\n\n{post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет'
+            return {'m':f'Вот такой пост мы подготовили:\n\n{post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет', 'att': ''}
 
 
         if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
@@ -124,15 +125,13 @@ class VkBot:
 
         if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
             self._stage = stage.Stage.WHAITING_PHOTO
-            return f'Отлично! Жду фото с героем ВОВ :)'
+            return {'m':f'Отлично! Жду фото с героем ВОВ :)', 'att':''}
 
         if self._stage is stage.Stage.WHAITING_PHOTO:
             photo = self._get_photo_from_message(message_id, api)
             self._get_photo_by_url(photo)
 
             # self._stage = stage.Stage.START
-            return f'Отлично! Жду фото с героем ВОВ :)'
-            self._stage = stage.Stage.START
 
             path = '%s/%s' % (self._config['IMAGES_DIR'], '1.jpg')
             self._algomanager_tasks[self._USER_ID] = {'status': 'wait', 'file': path}
@@ -148,23 +147,19 @@ class VkBot:
                             break
                 if path:
                     break
-
+                print(path)
+                self._post_to_community("Пост", path)
                 time_out -= 1
                 sleep(1)
-
-            return f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+            return {'m': f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': self._get_vk_photo_from_local(path)}
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
-            return f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+
+            return {'m': f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': ''}
 
         
-        return 'Не понимаю о чем вы...'
-
-    def _get_time(self):
-        request = requests.get('https://my-calend.ru/date-and-time-today')
-        b = bs4.BeautifulSoup(request.text, 'html.parser')
-        return self._clean_all_tag_from_str(str(b.select('.page')[0].findAll('h2')[1])).split()[1]
+        return {'m':'Не понимаю о чем вы...', 'att': ''}
 
     @staticmethod
     def _clean_all_tag_from_str(string_line):
