@@ -4,7 +4,8 @@ from time import sleep
 
 import stage
 import pnconnector
-
+from vk_api import vk_api
+from vk_api import VkUpload
 
 from imageprocessing.colorization import AlgoClient
 from imageprocessing.validation import KerasValidationModel
@@ -83,16 +84,52 @@ class VkBot:
 
         self._post_text = text
 
+    def _get_photo_by_url(self, photo_url):
+        photo = requests.get(photo_url)
+        photo_file = open(f'../data/1.jpg', "wb")
+        photo_file.write(photo.content)
+        photo_file.close()
 
-    def new_message(self, message):
+    def _get_photo_from_message(self, message_id, api):
+        photos = api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
+        return photos[0]['photo']['sizes'][4]['url']
+
+    def _get_vk_photo_from_local(self, image_path):
+        vk = vk_api.VkApi(token="b156808fc782a5d672728f21f69bb85db358fe11320183d485027db670c85b262cdd58a16fb53ffa34405")
+        # upload_url = vk.method('photos.getUploadServer', {'album_id':270364396, 'group_id':193773037})
+        # print(upload_url)
+        upload = VkUpload(vk)
+        photo = upload.photo(  # Подставьте свои данные
+            image_path,
+            album_id=270364396,
+            group_id=193773037
+        )
+        photo = photo[0]
+        owner_id = photo['owner_id']
+        photo_id = photo['id']
+        return f'photo{owner_id}_{photo_id}'
+
+    def _post_to_community(self, message, image_path=""):
+        vk = vk_api.VkApi(token="b156808fc782a5d672728f21f69bb85db358fe11320183d485027db670c85b262cdd58a16fb53ffa34405")
+        if image_path!="":
+            photo_url = self._get_vk_photo_from_local(image_path)
+            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': photo_url})
+        else:
+            vk.method('wall.post', {'owner_id': -193773037, 'from_group': 1, "message": message
+                                })
+
+    def new_message(self, message, message_id, api):
 
         if self._stage is stage.Stage.START:
             self._stage = stage.Stage.WHAITING_NAME
-            return f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\n' \
-                'Введи имя и героя и год рождения (если известен). Примеры: \n\n' \
-                'Иванов Алексей 1915\n' \
-                'Смирнов Василий\n' \
-                'Воронухин\n'
+            return {
+                'm': f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\n' \
+                    'Введи имя и героя и год рождения (если известен). Примеры: \n\n' \
+                    'Иванов Алексей 1915\n' \
+                    'Смирнов Василий\n' \
+                    'Воронухин\n',
+                'att': ''
+            }
         
         elif self._stage is stage.Stage.WHAITING_NAME:
             self._stage = stage.Stage.WHAITING_CHOSE_HERO
@@ -110,8 +147,7 @@ class VkBot:
             self._items = pnc.getData(name, date, self._short_list_len_limit)
             count = int(len(self._items))
             text = self._items_short_list()
-            return f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.'
-
+            return {'m': f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.', 'att': ''}
 
         if self._stage is stage.Stage.WHAITING_CHOSE_HERO:
             self._search_continue_or_next_stage(message)
@@ -123,15 +159,14 @@ class VkBot:
         # Забываем все остальные записи
         self._items = []
 
-
         if self._stage is stage.Stage.HERO_NOT_FOUND:
             self._stage = stage.Stage.START
-            return f'Мне очень жаль. Нужно уточнить поиск. Попробуй еще раз.'
+            return {'m':f'Мне очень жаль. Нужно уточнить поиск. Попробуй еще раз.', 'att': ''}
 
         if self._stage is stage.Stage.TEXT_IS_READY:
             self._stage = stage.Stage.DO_YOU_HAVE_PHOTO
             self._build_post_text()
-            return f'Вот такой пост мы подготовили:\n\n{self._post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет'
+            return {'m': f'Вот такой пост мы подготовили:\n\n{self._post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет', 'att': ''}
 
 
         if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
@@ -140,11 +175,14 @@ class VkBot:
 
         if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
             self._stage = stage.Stage.WHAITING_PHOTO
-            return f'Отлично! Жду фото с героем ВОВ :)'
+            return {'m':f'Отлично! Жду фото с героем ВОВ :)', 'att':''}
 
         if self._stage is stage.Stage.WHAITING_PHOTO:
-            self._stage = stage.Stage.START
-            
+            photo = self._get_photo_from_message(message_id, api)
+            self._get_photo_by_url(photo)
+
+            # self._stage = stage.Stage.START
+
             path = '%s/%s' % (self._config['IMAGES_DIR'], '1.jpg')
             self._algomanager_tasks[self._USER_ID] = {'status': 'wait', 'file': path}
             time_out = self._config['ALGOMANAGER_TIMEOUT']
@@ -162,20 +200,15 @@ class VkBot:
 
                 time_out -= 1
                 sleep(1)
-            
-            return f'Пост готов! \n\n(фото {path})\n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+            self._post_to_community("Пост", self._get_vk_photo_from_local('../data/1.jpg'))
+            return {'m': f'Пост готов! \n\n(фото {path})\n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': self._get_vk_photo_from_local('../data/1.jpg')}
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
-            return f'Пост готов! \n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+            return {'m': f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': ''}
 
         
-        return 'Не понимаю о чем вы...'
-
-    def _get_time(self):
-        request = requests.get('https://my-calend.ru/date-and-time-today')
-        b = bs4.BeautifulSoup(request.text, 'html.parser')
-        return self._clean_all_tag_from_str(str(b.select('.page')[0].findAll('h2')[1])).split()[1]
+        return {'m':'Не понимаю о чем вы...', 'att': ''}
 
     @staticmethod
     def _clean_all_tag_from_str(string_line):
