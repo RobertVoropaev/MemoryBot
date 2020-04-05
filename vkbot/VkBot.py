@@ -7,8 +7,6 @@ import pnconnector
 from vk_api import vk_api
 from vk_api import VkUpload
 
-
-
 from imageprocessing.colorization import AlgoClient
 from imageprocessing.validation import KerasValidationModel
 
@@ -62,7 +60,7 @@ class VkBot:
     def _get_photo_from_message(self, message_id, api):
         return api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
 
-    def _post_to_community(self, message, image_path):
+    def _get_vk_photo_from_local(self, image_path):
         vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
         # upload_url = vk.method('photos.getUploadServer', {'album_id':270364396, 'group_id':193773037})
         # print(upload_url)
@@ -72,11 +70,19 @@ class VkBot:
             album_id=270364396,
             group_id=193773037
         )
-        print(photo)
         photo = photo[0]
         owner_id = photo['owner_id']
         photo_id = photo['id']
-        vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments':f'photo{owner_id}_{photo_id}'})
+        return owner_id, photo_id
+
+    def _post_to_community(self, message, image_path=""):
+        vk = vk_api.VkApi(token="82bca921765a894b0a0c5a6ed6d66f53d640099690968e9b73e3dc46f028eb5ee44289e4b3fdca85f3cbf")
+        if image_path!="":
+            owner_id, photo_id = self._get_vk_photo_from_local(image_path)
+            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments':f'photo{owner_id}_{photo_id}'})
+        else:
+            vk.method('wall.post', {'owner_id': -193773037, 'from_group': 1, "message": message
+                                })
 
     def new_message(self, message, message_id, api):
 
