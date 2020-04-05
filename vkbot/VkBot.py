@@ -37,12 +37,20 @@ class VkBot:
     def _load_photo_or_post_text(self, message):
         if 'ДА' in message.upper() or 'ЕСТЬ' in message.upper():
             self._stage = stage.Stage.WHAITING_PHOTO
-        
+
         else:
             self._stage = stage.Stage.POST_IS_READY
 
+    def _get_photo_by_url(self, photo_url):
+        photo = requests.get(photo_url)
+        photo_file = open(f'../data/{random.randint(0, 2048)}.png', "wb")
+        photo_file.write(photo.content)
+        photo_file.close()
 
-    def new_message(self, message):
+    def _get_photo_from_message(self, message_id, api):
+        return api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
+
+    def new_message(self, message, message_id, api):
 
         if self._stage is stage.Stage.START:
             self._stage = stage.Stage.WHAITING_NAME
@@ -56,7 +64,6 @@ class VkBot:
             text = self._items_short_list()
             return f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.'
 
-
         if self._stage is stage.Stage.WHAITING_CHOSE_HERO:
             self._search_continue_or_next_stage(message)
         
@@ -66,7 +73,6 @@ class VkBot:
         
         # Забываем все остальные записи
         self._items = []
-
 
         if self._stage is stage.Stage.HERO_NOT_FOUND:
             self._stage = stage.Stage.START
@@ -83,7 +89,10 @@ class VkBot:
 
 
         if self._stage is stage.Stage.WHAITING_PHOTO:
-            self._stage = stage.Stage.START
+            photo = self._get_photo_from_message(message_id, api)
+            self._get_photo_by_url(photo)
+
+            # self._stage = stage.Stage.START
             return f'Отлично! Жду фото с героем ВОВ :)'
 
         elif self._stage is stage.Stage.POST_IS_READY:

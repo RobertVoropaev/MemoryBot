@@ -48,4 +48,4 @@ for event in longpoll.listen():
             else:
                 bot = bots[event.user_id]
 
-            write_msg(event.user_id, bot.new_message(event.text))
+            write_msg(event.user_id, bot.new_message(event.text, event.message_id, vk))
