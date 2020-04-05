@@ -6,8 +6,8 @@ from keras.preprocessing import image
 from keras.applications.resnet50 import preprocess_input, decode_predictions
 
 class KerasValidationModel:
-    def __init__(self, local_dir="data/"):
-        self.model = keras.models.load_model('models/model.h5')
+    def __init__(self, local_dir="data/", models_dir="models/"):
+        self.model = keras.models.load_model(models_dir + 'model.h5')
 
         self.valid_classes = ['military_uniform', 'pickelhaube', 'web_site', 'bow_tie', 'academic_gown',
                             'suit', 'mortarboard', 'accordion', 'sunglass', 'Windsor_tie']
@@ -34,8 +34,8 @@ class KerasValidationModel:
 
 
 if __name__ == '__main__':
-    # сюда нужно передать путь до папки, в которой будут лежать фотографии
-    keras_model = KerasValidationModel(local_dir="data/")
+    # сюда нужно передать путь до папки, в которой будут лежать фотографии, и путь до модели
+    keras_model = KerasValidationModel(local_dir="data/", models_dir="models/")
 
     img_name = sys.argv[1]
 

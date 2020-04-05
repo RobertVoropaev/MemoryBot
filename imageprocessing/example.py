@@ -16,8 +16,8 @@ print(color_img_path) # 1234_color.jpg
 
 ############ Модуль валидации ############
 
-# сюда нужно передать путь до папки, в которой будут лежать фотографии
-keras_model = KerasValidationModel(local_dir="data/")
+# сюда нужно передать путь до папки, в которой будут лежать фотографии и путь до папки с моделью (model.h5)
+keras_model = KerasValidationModel(local_dir="data/", models_dir="models/")
 
 img_name = "1.jpg"
 
