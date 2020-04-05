@@ -97,7 +97,7 @@ class VkBot:
         return photos[0]['photo']['sizes'][4]['url']
 
     def _get_vk_photo_from_local(self, image_path):
-        vk = vk_api.VkApi(self._config['APP_KEY'])
+        vk = vk_api.VkApi(token=self._config['APP_KEY'])
         # upload_url = vk.method('photos.getUploadServer', {'album_id':270364396, 'group_id':193773037})
         # print(upload_url)
         upload = VkUpload(vk)
@@ -112,10 +112,10 @@ class VkBot:
         return f'photo{owner_id}_{photo_id}'
 
     def _post_to_community(self, message, image_path=""):
-        vk = vk_api.VkApi(self._config['APP_KEY'])
+        vk = vk_api.VkApi(token=self._config['APP_KEY'])
         if image_path!="":
-            photo_url = self._get_vk_photo_from_local(image_path)
-            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': photo_url})
+            photo_url = image_path
+            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': image_path})
         else:
             vk.method('wall.post', {'owner_id': -193773037, 'from_group': 1, "message": message
                                 })
@@ -212,6 +212,8 @@ class VkBot:
 
                 time_out -= 1
                 sleep(1)
+            
+            path = '%s/%s' % (self._config['IMAGES_DIR'], path)
             self._post_to_community("Пост", self._get_vk_photo_from_local(path))
             return {'m': f'Пост готов! \n\n' \
                         f'(фото {path})\n\n' \
