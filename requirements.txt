@@ -2,3 +2,11 @@ requests==2.23.0
 vk-api==11.8.0
 beautifulsoup4==4.8.2
 algorithmia==1.2.1
+Keras==2.3.1
+Keras-Applications==1.0.8
+Keras-Preprocessing==1.1.0
+pandas==0.25.1
+tensorboard==1.14.0
+tensorflow==1.14.0
+tensorflow-estimator==1.14.0
+numpy==1.18.2
