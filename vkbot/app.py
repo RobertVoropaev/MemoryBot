@@ -5,7 +5,6 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 
 from VkBot import VkBot
 
-
 def write_msg(user_id, message):
     vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random.randint(0, 2048)})
     
@@ -18,7 +17,7 @@ config = None
 with open(CONFIG_FILE) as json_file:
     config = json.load(json_file)
 
-keys = {'KEY'}
+keys = {'KEY', 'IMAGES_DIR'}
 
 for key in keys:
     if key not in config:
@@ -32,6 +31,14 @@ vk = vk_api.VkApi(token=token)
 
 longpoll = VkLongPoll(vk)
 
+import threading
+from algomanager import AlgoManager
+
+algomanager_tasks = {}
+algomanager = AlgoManager(config, algomanager_tasks)
+algomanager_thread = threading.Thread(target=algomanager.process)
+algomanager_thread.start()
+
 print("Server started")
 
 bots = {}
@@ -43,7 +50,7 @@ for event in longpoll.listen():
 
             bot = None
             if event.user_id not in bots:
-                bot = VkBot(event.user_id)
+                bot = VkBot(event.user_id, config, algomanager_tasks)
                 bots[event.user_id] = bot
             else:
                 bot = bots[event.user_id]
