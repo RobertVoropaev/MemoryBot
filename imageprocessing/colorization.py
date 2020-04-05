@@ -1,7 +1,7 @@
 import Algorithmia
 import sys
 
-class AlgoClient():
+class AlgoClient:
     def __init__(self, local_dir="data/"):
         self.local_dir = local_dir
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     algoclient = AlgoClient(local_dir="data/")
 
     img_name = sys.argv[1]
-    # получает на вход имя файла в папке
+    # получает на вход имя файла в папке и возвращает имя цветного файла в той же папке
     color_img_path = algoclient.colorize(img_name)
 
     print(color_img_path)
