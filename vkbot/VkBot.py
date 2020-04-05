@@ -136,6 +136,9 @@ class VkBot:
             self._items = pnc.getData(name, date, self._short_list_len_limit)
             count = int(len(self._items))
             text = self._items_short_list()
+            if count == 0:
+                self._stage = stage.Stage.WHAITING_CHOSE_HERO
+                return {'m': f'Мне очень жаль, ничего не нашлось. Попробуйте изменить запрос', 'att': ''}
             return {'m': f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n' \
                         f'{text}\n'
                         'Мне удалось найти твоего героя или ищем дальше?\n\n' \
