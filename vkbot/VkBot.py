@@ -3,6 +3,8 @@ import requests
 
 import stage
 import pnconnector
+from vk_api import vk_api
+
 
 class VkBot:
     def __init__(self, user_id):
@@ -49,6 +51,10 @@ class VkBot:
 
     def _get_photo_from_message(self, message_id, api):
         return api.method('messages.getById', {'message_ids': message_id})['items'][0]['attachments']
+
+    def _post_to_community(self, message):
+        vk = vk_api.VkApi(token="f8c00753616ce2cf3ec5b5159aa450a9f0614a08c22c1c2897a81a70cff2306c6df24bdfd824c16a0c358")
+        vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message})
 
     def new_message(self, message, message_id, api):
 
@@ -97,6 +103,7 @@ class VkBot:
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
+            self._post_to_community("ready post")
             return f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
 
         
