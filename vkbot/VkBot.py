@@ -55,12 +55,26 @@ class VkBot:
 
         if self._stage is stage.Stage.START:
             self._stage = stage.Stage.WHAITING_NAME
-            return f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\nВведи имя героя.'
+            return f'Привет, {self._USERNAME}! Я помогу тебе найти героя по имени и сгенерирую пост. \n\n' \
+                'Введи имя и героя и год рождения (если известен). Примеры: \n\n' \
+                'Иванов Алексей 1915\n' \
+                'Смирнов Василий\n' \
+                'Воронухин\n'
         
         elif self._stage is stage.Stage.WHAITING_NAME:
             self._stage = stage.Stage.WHAITING_CHOSE_HERO
+
+            def parse_query(q: str):
+                last_four = q[-4:]
+                if len(last_four) == 4 and last_four.isnumeric():
+                    date = last_four
+                    return q[:-4].strip(), date
+                else:
+                    return q, None
+            name, date = parse_query(message.strip())
+            print(f'Parsed query: name: {name}, birth_year: {date}')
             pnc = pnconnector.PNConnector()
-            self._items = pnc.getData(message, self._short_list_len_limit)
+            self._items = pnc.getData(name, date, self._short_list_len_limit)
             count = int(len(self._items))
             text = self._items_short_list()
             return f'Мне удалось найти более {count} людей. Вот список героев ВОВ которых я нашел:\n{text}\nМне удалось найти твоего героя или ищем дальше?\n\nОтветьте: номером из списка или нет - если человек не найден.'

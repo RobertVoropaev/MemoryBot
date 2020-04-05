@@ -6,7 +6,7 @@ class PNConnector:
     def __init__(self):
         pass
 
-    def getData(self, name: str, limit=100):
+    def getData(self, name: str, birth_date=None, limit=100):
         page = 1
         items = []
 
@@ -14,7 +14,11 @@ class PNConnector:
             data = self._get_data_by_page(name, page)
             if not data:
                 break
-            items.extend(data['items'])
+            for item in data['items']:
+                if (birth_date is not None) and ('Birthday' in item) and (item['Birthday'] is not None) \
+                        and (birth_date not in item['Birthday']):
+                    continue
+                items.append(item)
             print('items len: ' + str(len(items)))
             page += 1
             # Без sleep api перестает отдавать данные после 200 записи
