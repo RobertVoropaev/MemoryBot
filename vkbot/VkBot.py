@@ -35,7 +35,10 @@ class VkBot:
 
     def _search_continue_or_next_stage(self, message):
         try:
-            if 0 < int(message) and int(message) < self._short_list_len_limit:
+            value = int(message)
+            if 0 < value and value < self._short_list_len_limit:
+                self._pn_item = self._items[value]
+                self._items = []
                 self._stage = stage.Stage.TEXT_IS_READY
         except:
             if 'ДАЛЕЕ' in message.upper():
@@ -49,6 +52,36 @@ class VkBot:
         
         else:
             self._stage = stage.Stage.POST_IS_READY
+
+    def _build_post_text(self):
+        data = self._pn_item
+        text = ''
+        if data['Rank']:
+            text += '%s ' % data['Rank']
+        if data['Lastname']:
+            text += '%s ' % data['Lastname']
+        if data['Firstname']:
+            text += '%s ' % data['Firstname']
+        if data['Patronymic']:
+            text += '%s ' % data['Patronymic']
+        if data['Birthday']:
+            text += 'родился %s' % data['Birthday']
+        text += '.\n'
+        
+        if data['Unit']:
+            text += 'Во время войны служил в %s,' % data['Unit']
+        if data['Callplace']:
+            text += '%s ' % data['Callplace']
+        if data['Calldate']:
+            text += '%s' % data['Calldate']
+        text += '.\n'
+
+        if 'sourcelink' in data:
+            text += 'О наградах можно почитать здесь %s.\n' % data['sourcelink']
+            
+        text += 'Я помню.\n\n#бессмертныйполконлайн #memorybot #дорогапамяти'
+
+        self._post_text = text
 
 
     def new_message(self, message):
@@ -83,8 +116,8 @@ class VkBot:
 
         if self._stage is stage.Stage.TEXT_IS_READY:
             self._stage = stage.Stage.DO_YOU_HAVE_PHOTO
-            post_text = 'Содержание поста'
-            return f'Вот такой пост мы подготовили:\n\n{post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет'
+            self._build_post_text()
+            return f'Вот такой пост мы подготовили:\n\n{self._post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет'
 
 
         if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
@@ -116,11 +149,11 @@ class VkBot:
                 time_out -= 1
                 sleep(1)
             
-            return f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+            return f'Пост готов! \n\n(фото {path})\n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
-            return f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
+            return f'Пост готов! \n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
 
         
         return 'Не понимаю о чем вы...'
