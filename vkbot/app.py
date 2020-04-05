@@ -18,7 +18,7 @@ config = None
 with open(CONFIG_FILE) as json_file:
     config = json.load(json_file)
 
-keys = {'KEY', 'IMAGES_DIR'}
+keys = {'KEY', 'IMAGES_DIR', 'APP_KEY'}
 
 for key in keys:
     if key not in config:
@@ -54,7 +54,8 @@ for event in longpoll.listen():
                 bots[event.user_id] = bot
             else:
                 bot = bots[event.user_id]
-            print(event.text)
+            
+            # print(event.text)
             message = bot.new_message(event.text, event.message_id, vk)
-            print(message)
+            # print(message)
             write_msg(event.user_id, message['m'], message['att'])
