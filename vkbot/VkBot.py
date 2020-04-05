@@ -37,8 +37,9 @@ class VkBot:
     def _search_continue_or_next_stage(self, message):
         try:
             value = int(message)
-            if 0 < value and value < self._short_list_len_limit:
-                self._pn_item = self._items[value]
+            if 0 < value and value <= self._short_list_len_limit:
+                ind = value - 1
+                self._pn_item = self._items[ind]
                 self._items = []
                 self._stage = stage.Stage.TEXT_IS_READY
         except:
