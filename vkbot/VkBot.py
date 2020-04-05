@@ -1,13 +1,22 @@
 import bs4 as bs4
 import requests
+from time import sleep
 
 import stage
 import pnconnector
 
+
+from imageprocessing.colorization import AlgoClient
+from imageprocessing.validation import KerasValidationModel
+
+
 class VkBot:
-    def __init__(self, user_id):
+    def __init__(self, user_id: int, config: dict, algomanager_tasks: dict):
         self._short_list_len_limit = 101
         self._stage = stage.Stage.START
+
+        self._algomanager_tasks = algomanager_tasks
+        self._config = config
 
         self._USER_ID = user_id
         self._USERNAME = self._get_user_name_from_vk_id(user_id)
@@ -36,7 +45,7 @@ class VkBot:
     
     def _load_photo_or_post_text(self, message):
         if 'ДА' in message.upper() or 'ЕСТЬ' in message.upper():
-            self._stage = stage.Stage.WHAITING_PHOTO
+            self._stage = stage.Stage.DO_YOU_HAVE_PHOTO
         
         else:
             self._stage = stage.Stage.POST_IS_READY
@@ -73,18 +82,41 @@ class VkBot:
             return f'Мне очень жаль. Нужно уточнить поиск. Попробуй еще раз.'
 
         if self._stage is stage.Stage.TEXT_IS_READY:
-            self._stage = stage.Stage.WHAITING_PHOTO
+            self._stage = stage.Stage.DO_YOU_HAVE_PHOTO
             post_text = 'Содержание поста'
             return f'Вот такой пост мы подготовили:\n\n{post_text}\n\nПост почти готов! Если у вас есть фото, то люди будут знать героя в лицо! Вы хотите добавить фото?\n\nОтветьте да или нет'
 
 
-        if self._stage is stage.Stage.WHAITING_PHOTO:
+        if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
             self._load_photo_or_post_text(message)
 
 
+        if self._stage is stage.Stage.DO_YOU_HAVE_PHOTO:
+            self._stage = stage.Stage.WHAITING_PHOTO
+            return f'Отлично! Жду фото с героем ВОВ :)'
+
         if self._stage is stage.Stage.WHAITING_PHOTO:
             self._stage = stage.Stage.START
-            return f'Отлично! Жду фото с героем ВОВ :)'
+            
+            path = '%s/%s' % (self._config['IMAGES_DIR'], '1.jpg')
+            self._algomanager_tasks[self._USER_ID] = {'status': 'wait', 'file': path}
+            time_out = self._config['ALGOMANAGER_TIMEOUT']
+
+            path = ''
+            while time_out > 0:
+                for user_id, task in self._algomanager_tasks.items():
+                    if user_id == self._USER_ID:
+                        if task['status'] == 'ready':
+                            path = task['file']
+                            self._algomanager_tasks.pop(user_id)
+                            break
+                if path:
+                    break
+
+                time_out -= 1
+                sleep(1)
+            
+            return f'Пост готов! \n\n(фото {path})\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)'
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
