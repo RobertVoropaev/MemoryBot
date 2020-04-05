@@ -13,7 +13,7 @@ from imageprocessing.validation import KerasValidationModel
 
 class VkBot:
     def __init__(self, user_id: int, config: dict, algomanager_tasks: dict):
-        self._short_list_len_limit = 101
+        self._short_list_len_limit = 21
         self._stage = stage.Stage.START
 
         self._algomanager_tasks = algomanager_tasks
@@ -103,8 +103,8 @@ class VkBot:
         upload = VkUpload(vk)
         photo = upload.photo(  # Подставьте свои данные
             image_path,
-            album_id=270364396,
-            group_id=193773037
+            album_id=int(self._config['ALBUM_ID']),
+            group_id=int(self._config['GROUP_ID'])
         )
         photo = photo[0]
         owner_id = photo['owner_id']
@@ -115,9 +115,9 @@ class VkBot:
         vk = vk_api.VkApi(token=self._config['APP_KEY'])
         if image_path!="":
             photo_url = image_path
-            vk.method('wall.post', {'owner_id':-193773037, 'from_group':1, "message":message, 'attachments': image_path})
+            vk.method('wall.post', {'owner_id': -int(self._config['GROUP_ID']), 'from_group':1, "message":message, 'attachments': image_path})
         else:
-            vk.method('wall.post', {'owner_id': -193773037, 'from_group': 1, "message": message
+            vk.method('wall.post', {'owner_id': -int(self._config['GROUP_ID']), 'from_group': 1, "message": message
                                 })
 
     def new_message(self, message, message_id, api):
@@ -214,9 +214,8 @@ class VkBot:
                 sleep(1)
             
             path = '%s/%s' % (self._config['IMAGES_DIR'], path)
-            self._post_to_community("Пост", self._get_vk_photo_from_local(path))
+            self._post_to_community(self._post_text, self._get_vk_photo_from_local(path))
             return {'m': f'Пост готов! \n\n' \
-                        f'(фото {path})\n\n' \
                         f'{self._post_text}\n\n' \
                         'Давайте его опубликуем?\n\n' \
                         '(кнопка/ссылка опубликовать)',
