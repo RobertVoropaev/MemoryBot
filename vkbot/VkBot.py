@@ -205,7 +205,7 @@ class VkBot:
 
         elif self._stage is stage.Stage.POST_IS_READY:
             self._stage = stage.Stage.START
-            return {'m': f'Пост готов! Давайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': ''}
+            return {'m': f'Пост готов! \n\n{self._post_text}\n\nДавайте его опубликуем?\n\n(кнопка/ссылка опубликовать)', 'att': ''}
 
         
         return {'m':'Не понимаю о чем вы...', 'att': ''}
