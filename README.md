@@ -8,3 +8,20 @@ MemoryBot - чат-бот ВКонтакте, который позволяет 
 * Mikhail Kuznetsov
 * Mariia Rumiantceva
 * Владимир Филинов
+
+## Обработка изображений
+### Модуль Colorization
+<table>
+   <tr>
+    <th>До</th>
+    <th>После</th>
+    <th>До</th>
+    <th>После</th>
+   </tr>
+   <tr>
+     <td><img src="/imageprocessing/colorization-example/1.jpg" width="200"></td>
+     <td><img src="/imageprocessing/colorization-example/2.jpg" width="200"></td>
+     <td><img src="/imageprocessing/colorization-example/3.jpg" width="200"></td>
+     <td><img src="/imageprocessing/colorization-example/4.jpg" width="200"></td>
+  </tr>
+</table>
